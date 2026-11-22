@@ -10,14 +10,54 @@ use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
 {
-    public function index()
-    {
-        $books = Book::all()->map(fn (Book $book) => $book->toArray());
+   public function index(Request $request)
+{
+    $query = Book::query();
 
-        return view('books.catalog', compact('books'));
+    // Search by title or author
+    $search = $request->query('search');
+
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('author', 'like', "%{$search}%");
+        });
     }
 
-    public function create()
+    // Filter by genre
+    $genre = $request->query('genre');
+
+    if ($genre) {
+        $query->where('genre', $genre);
+    }
+
+    // Premium filter
+    $premium = $request->query('premium');
+
+    if ($premium !== null && $premium !== '') {
+        if ($premium === '1') {
+            $query->where('price', '>=', 15);
+        } elseif ($premium === '0') {
+            $query->where('price', '<', 15);
+        }
+    }
+
+    // Sorting with allowed columns
+    $sort = $request->query('sort', 'title');
+
+    if (! in_array($sort, ['title', 'author'])) {
+        $sort = 'title';
+    }
+
+    $books = $query->orderBy($sort)
+                   ->paginate(10)
+                   ->withQueryString();
+
+    return view('books.catalog', compact('books'));
+}
+    
+
+public function create()
     {
         $genres = Genre::all();
 
@@ -91,7 +131,14 @@ class BookController extends Controller
             ->with('success', 'Book updated successfully.');
     }
 
-    public function destroy(Book $book) {}
+    public function destroy(Book $book)
+{
+    $book->delete();
+
+    return redirect()
+        ->route('books.catalog')
+        ->with('success', 'Book deleted successfully.');
+}
 
     public function spotlight()
     {

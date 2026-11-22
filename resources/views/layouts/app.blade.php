@@ -13,26 +13,18 @@
 
 <body>
 
-    <header class="bg-dark text-white py-4 mb-4">
-        <div class="container">
-            <h1>📚 Shelves</h1>
-            <p class="mb-1">Digital Bookstore Directory</p>
-            <p class="mb-0">
-                Created By:
-                <strong>Michael Andrei Camu</strong>
-            </p>
-        </div>
-    </header>
 
     <div class="container">
 
-        @include('partials._nav')
+        @if (!request()->routeIs('register'))
+    @include('partials._nav')
+@endif
 
         <main>
             @yield('content')
         </main>
 
     </div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
